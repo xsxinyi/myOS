@@ -1,0 +1,55 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+		  "label": "build-vscode",
+		  "command": "make",
+		  "args": [
+			// "debug-nogdb"
+			// "debug"
+			// "lab1-mon"
+		  ],
+		  "type": "shell",
+		  "isBackground": true,
+		  "problemMatcher": {
+			"pattern": {
+			  "regexp": "."
+			},
+			"background": {
+			  "activeOnStart": true,
+			  "beginsPattern": ".",
+			  "endsPattern": "."
+			},
+		  },
+		}
+	  ]
+}
+
+
+
+// {
+// 	"version": "2.0.0",
+// 	"tasks": [
+// 		{
+// 		  "label": "build-debug-nogdb",
+// 		  "command": "make",
+// 		  "args": [
+// 			"debug-nogdb"
+// 			// "debug"
+// 			// "lab1-mon"
+// 		  ],
+// 		  "type": "shell",
+// 		  "isBackground": true,
+// 		  "problemMatcher": {
+// 			"pattern": {
+// 			  "regexp": "."
+// 			},
+// 			"background": {
+// 			  "activeOnStart": true,
+// 			  "beginsPattern": ".",
+// 			  "endsPattern": "."
+// 			},
+// 		  },
+// 		}
+// 	  ]
+// }
