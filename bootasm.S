@@ -29,30 +29,36 @@ start:
     #  address line 20 is tied low, so that addresses higher than
     #  1MB wrap around to zero by default. This code undoes this.
 
-seta20.1:
-    # inb   从I/O端口读取一个字节(BYTE, HALF-WORD)
-    # outb  向I/O端口写入一个字节（BYTE, HALF-WORD）
-    # inw   从I/O端口读取一个字（WORD，即两个字节）
-    # outw  向I/O端口写入一个字（WORD，即两个字节）
-    inb $0x64, %al                                  # Wait for not busy(8042 input buffer empty).
-    # ZF标志: 指令执行后，其结果是否为0，若结果为0，那么ZF=1；如果不为0，那么ZF=0。
-    testb $0x2, %al                                 # 如果 %al 第低2位为1，则ZF = 0, 则跳转
-    #  JNZ，全称jump if not zero，汇编语言中的条件转移指令。结果不为零（或不相等）则转移。JZ 为 0 则跳转。测试条件：ZF=0
-    jnz seta20.1                                    # 如果 %al 第低2位为0，则ZF = 1, 则不跳转
+# seta20.1:
+#     # inb   从I/O端口读取一个字节(BYTE, HALF-WORD)
+#     # outb  向I/O端口写入一个字节（BYTE, HALF-WORD）
+#     # inw   从I/O端口读取一个字（WORD，即两个字节）
+#     # outw  向I/O端口写入一个字（WORD，即两个字节）
+#     inb $0x64, %al                                  # Wait for not busy(8042 input buffer empty).
+#     # test: 测试（两操作数作与运算,仅修改标志位，不回送结果）
+#     # ZF标志: 指令执行后，其结果是否为0，若结果为0，那么ZF=1；如果不为0，那么ZF=0。
+#     testb $0x2, %al                                 # 如果 %al 第低2位为1，则ZF = 0, 则跳转
+#     #  JNZ，全称jump if not zero，汇编语言中的条件转移指令。结果不为零（或不相等）则转移。JZ 为 0 则跳转。测试条件：ZF=0
+#     jnz seta20.1                                    # 如果 %al 第低2位为0，则ZF = 1, 则不跳转
 
     # 把0xd1这条数据写入到0x64端口中。当向0x64端口写入数据时，则代表向键盘控制器804x发送指令。这个指令将会被送给0x60端口。
     # 0xd1指令代表下一次写入0x60端口的数据将被写入给804x控制器的输出端口。可以理解为下一个写入0x60端口的数据是一个控制指令。
-    movb $0xd1, %al                                 # 0xd1 -> port 0x64
-    outb %al, $0x64                                 # 0xd1 means: write data to 8042's P2 port
+#     movb $0xd1, %al                                 # 0xd1 -> port 0x64
+#     outb %al, $0x64                                 # 0xd1 means: write data to 8042's P2 port
 
-seta20.2:
-    # 等待上面的 0xd1 指令被读取到
-    inb $0x64, %al                                  # Wait for not busy(8042 input buffer empty).
-    testb $0x2, %al
-    jnz seta20.2
+# seta20.2:
+#     # 等待上面的 0xd1 指令被读取到
+#     inb $0x64, %al                                  # Wait for not busy(8042 input buffer empty).
+#     testb $0x2, %al
+#     jnz seta20.2
 
-    movb $0xdf, %al                                 # 0xdf -> port 0x60
-    outb %al, $0x60                                 # 0xdf = 11011111, means set P2's A20 bit(the 1 bit) to 1
+#     movb $0xdf, %al                                 # 0xdf -> port 0x60
+#     outb %al, $0x60                                 # 0xdf = 11011111, means set P2's A20 bit(the 1 bit) to 1
+
+    # 打开地址线A20的另一种方法：通过0x92端口打开。
+	in	$0x92, %al
+	or	$0x2, %al 
+	out	%al, $0x92 
 
     # GDT Global Descriptor Table
     # 全局描述符表：存放8字节的段描述符，段描述符包含段的属性。
@@ -103,7 +109,7 @@ protcseg:
 
     # Set up the stack pointer and call into C. The stack region is from 0--start(0x7c00)
     # EBP 扩展基址指针寄存器(extended base pointer) 其内存放一个指针，该指针指向系统栈最上面一个栈帧的底部。rbp寄存器,是ebp寄存器64位扩展.
-    #     push %rbp是把%rbp寄存器的值保存到内存里面的数组模拟栈. 结合下面的mov %rsp,%rbp可以知道，%rbp此刻push的就是上面一个栈帧的栈低位置
+    # PUSH %rbp是把%rbp寄存器的值保存到内存里面的数组模拟栈. 结合下面的mov %rsp,%rbp可以知道, %rbp此刻push的就是上面一个栈帧的栈低位置
     # ESP（Extended Stack Pointer）为扩展栈指针寄存器，是指针寄存器的一种，用于存放函数栈顶指针。与之对应的是EBP（Extended Base Pointer），
     #    扩展基址指针寄存器，也被称为帧指针寄存器，用于存放函数栈底指针。ESP为栈指针，用于指向栈的栈顶（下一个压入栈的活动记录的顶部），而EBP为帧指针，指向当前活动记录的底部
     movl $0x0, %ebp

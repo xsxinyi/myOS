@@ -18,10 +18,10 @@ sign.o : sign.c
 bootblock.out: bootasm.o bootmain.o
 	ld -m elf_i386 -nostdlib -N -e start -Ttext 0x7C00 bootasm.o bootmain.o -o bootblock.o
 	objdump -S bootblock.o > bootblock.asm
-	objcopy -S -O binary bootblock.o bootblock.out
+	objcopy -S -O binary bootblock.o bootblock.out	
 
 bootmain.o: bootmain.c
-	gcc -I./tools -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -Os -nostdinc -c bootmain.c -o bootmain.o
+	gcc -I./tools -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -Os -nostdinc -c bootmain.c -o bootmain.o	
 
 bootasm.o: bootasm.S
 	gcc -I./ -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -Os -nostdinc -c bootasm.S -o bootasm.o

@@ -1,0 +1,81 @@
+ld 
+		-N
+       --omagic
+           Set the text and data sections to be readable and writable.  Also, do not page-align the data segment, and disable linking against shared libraries.  If the
+           output format supports Unix style magic numbers, mark the output as "OMAGIC". Note: Although a writable text section is allowed for PE-COFF targets, it does not
+           conform to the format specification published by Microsoft.
+		-e entry
+       --entry=entry
+           Use entry as the explicit symbol for beginning execution of your program, rather than the default entry point.  If there is no symbol named entry, the linker will try to
+           parse entry as a number, and use that as the entry address (the number will be interpreted in base 10; you may use a leading 0x for base 16, or a leading 0 for base 8).
+		-Tbss=org
+       -Tdata=org
+       -Ttext=org
+           Same as --section-start, with ".bss", ".data" or ".text" as the sectionname.
+
+
+objcopy
+		-O bfdname
+       --output-target=bfdname
+           Write the output file using the object format bfdname.
+		-S
+       --strip-all
+           Do not copy relocation and symbol information from the source file.  Also deletes debug sections.
+
+
+gcc
+		-fno-builtin
+       -fno-builtin-function
+           Don't recognize built-in functions that do not begin with
+           __builtin_ as prefix.
+
+           GCC normally generates special code to handle certain built-in
+           functions more efficiently; for instance, calls to "alloca" may
+           become single instructions which adjust the stack directly, and
+           calls to "memcpy" may become inline copy loops.
+		
+		-ggdb
+           Produce debugging information for use by GDB.  This means to use
+           the most expressive format available (DWARF, stabs, or the native
+           format if neither of those are supported), including GDB extensions
+           if at all possible.
+
+		-m32-bit
+       -m16-bit
+       -m8-bit
+           Similar to the stack- data- and const-align options above, these
+           options arrange for stack frame, writable data and constants to all
+           be 32-bit, 16-bit or 8-bit aligned.  The default is 32-bit
+           alignment.
+
+		-gstabs
+           Produce debugging information in stabs format (if that is
+           supported), without GDB extensions.  This is the format used by DBX
+           on most BSD systems.  On MIPS, Alpha and System V Release 4 systems
+           this option produces stabs debugging output that is not understood
+           by DBX.  On System V Release 4 systems this option requires the GNU
+           assembler.
+
+        -nostdinc
+           Do not search the standard system directories for header files.
+           Only the directories explicitly specified with -I, -iquote,
+           -isystem, and/or -idirafter options (and the directory of the
+           current file, if appropriate) are searched.
+
+        -fstdarg-opt
+           Optimize the prologue of variadic argument functions with respect
+           to usage of those arguments.
+
+           NOTE: In Ubuntu 14.10 and later versions, -fstack-protector-strong
+           is enabled by default for C, C++, ObjC, ObjC++, if none of
+           -fno-stack-protector, -nostdlib, nor -ffreestanding are found.
+
+        -Os Optimize for size.  -Os enables all -O2 optimizations except those
+           that often increase code size:
+
+           -falign-functions  -falign-jumps -falign-labels  -falign-loops
+           -fprefetch-loop-arrays  -freorder-blocks-algorithm=stc
+
+           It also enables -finline-functions, causes the compiler to tune for
+           code size rather than execution speed, and performs further
+           optimizations designed to reduce code size.

@@ -10,7 +10,6 @@
             "request": "launch",
             "miDebuggerServerAddress": "localhost:1234",
             "program": "${workspaceFolder}/kernel",
-            // "program": "${workspaceFolder}/bin/bootblock",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
