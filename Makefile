@@ -1,5 +1,7 @@
 all: ucore.img
-	qemu-system-i386 -S -s -parallel stdio -hda $< -serial null
+	# qemu-system-i386 -S -s -parallel stdio -hda $< -serial null
+	# qemu-system-i386 -S -s -m 32M -boot c -hda $< 
+	qemu-system-i386  -S -s -hda $< 
 
 ucore.img:	bootblock kernel
 	dd if=/dev/zero of=ucore.img count=10000

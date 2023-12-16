@@ -1,6 +1,5 @@
 
-int
-kern_init(void) {
+void kern_init(void) {
     /* do nothing */
-    while (1);
+    return;
 }
