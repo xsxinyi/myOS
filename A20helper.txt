@@ -1,0 +1,86 @@
+开启A20线有三种方法：
+
+1. 通过键盘控制器
+2. 调用BIOS功能
+3. 使用系统端口
+
+
+
+
+1. 磁盘控制器开启A20：
+
+这是开启A20线通常的作法。键盘的微控制器提供了一个关闭或开启A20线的功能。在开启A20线之前需要关闭中断以防止我们的内核陷入混乱。命令字节是通过键盘控制器的IO端口0x64来发送的。
+命令字节有两种：
+
+0xDD 可以开启A20线
+0xDF 关闭A20线
+通过将命令字节发送到 0x64端口，就能够开启A20
+0x64 端口相关信息可查看 IOPortHelper.txt
+
+cli           ;Disables interrupts #关中断
+push ax       ;Saves AX #保存AX寄存器
+mov al, 0xdd  ;Look at the command list #开启命令
+out 0x64, al  ;Command Register ＃将命令发送到0x64端口
+pop ax        ;Restore's AX ＃恢复AX寄存器
+sti           ;Enables interrupts ＃开中断
+
+或
+cli
+seta20.1:
+    inb $0x64, %al                                  # Wait for not busy(8042 input buffer empty).
+    # test: 测试（两操作数作与运算,仅修改标志位，不回送结果）
+    testb $0x2, %al                                 # 如果 %al 第低2位为1，则ZF = 0
+    jnz seta20.1                                    # 如果 %al 第低2位为0，则ZF = 1, 则不跳转
+
+    # 把0xd1这条数据写入到0x64端口中。当向0x64端口写入数据时，则代表向键盘控制器804x发送指令。这个指令将会被送给0x60端口。
+    # 0xd1指令代表下一次写入0x60端口的数据将被写入给804x控制器的输出端口。可以理解为下一个写入0x60端口的数据是一个控制指令。
+    movb $0xd1, %al                                 # 0xd1 -> port 0x64
+    outb %al, $0x64                                 # 0xd1 means: write data to 8042's P2 port
+
+seta20.2:
+    # 等待上面的 0xd1 指令被读取到
+    inb $0x64, %al                                  # Wait for not busy(8042 input buffer empty).
+    testb $0x2, %al
+    jnz seta20.2
+
+    movb $0xdf, %al                                 # 0xdf -> port 0x60
+    outb %al, $0x60                                 # 0xdf = 11011111, means set P2's A20 bit(the 1 bit) to 1
+
+
+2. BIOS开启A20
+
+int 15 的2400，2401，2402命令被用来关闭，开启和返回A20线状态。
+
+2400和2401（关闭、开启）命令返回状态
+2042命令返回状态
+;关闭
+push ax
+mov ax, 0x2400 
+int 0x15
+pop ax
+​
+;检查A20
+push ax
+push cx
+mov ax, 0x2402
+int 0x15
+pop cx
+pop ax
+    
+;开启
+push ax
+mov ax, 0x2401
+int 0x15
+pop ax
+​
+
+
+
+
+3. 使用系统0x92
+
+这个方法是十分危险的，因为它可以导致和其他硬件冲突并强制关机。一般还是不要使用这种方法。
+
+   in al,0x92
+   or al,0000_0010B ;把0x92的第1位置为1就可以了
+   out 0x92,al
