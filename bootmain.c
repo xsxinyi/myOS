@@ -100,11 +100,11 @@ readseg(uintptr_t va, uint32_t count, uint32_t offset) {
 /* bootmain - the entry of bootloader */
 // 首先，Boot把第一个即0号扇区即bootloader读入0x7c00
 // 然后，bootmain把1号扇区，即ELF的Header读入0x10000，从Header中知道，ELFHDR->e_entry = 0x100000, 即程序入口地址为 0x100000
-// 根据ELF的Header，ELF有三个Program section. 根据Program header table的偏置e_phoff，找到这三个Program Header.
+// 根据ELF的Header，ELF有3个Program Header table，9个Section Header table. 根据Program header table的偏置e_phoff，找到这三个Program Header.
 // 对于第一个Program Header，内存虚拟地址为0x100000，段在文件中的偏移为0x1000，因为文件起始为1号扇区，所以段从9号扇区开始。
-// 	    从中读取ph->p_memsz = 190个字节到 0x100000 内存中。
-// 对于第一个Program Header，内存虚拟地址为0x101000，段在文件中的偏移为0x2000，因为文件起始为1号扇区，所以段从17号扇区开始。
-// 	    从中读取ph->p_memsz = 12个字节到 0x101000 内存中。
+// 	从中读取ph->p_memsz = 190个字节到 0x100000 内存中。
+// 对于第一个Program Header，内存虚拟地址为0x101000，段在文件中的偏移为0x2000，因为文件起始为1号扇区，所以段从16号扇区开始。
+// 	从中读取ph->p_memsz = 12个字节到 0x101000 内存中。
 // 第三个段为空段。跳过。
 // 最后，跳到 ELFHDR->e_entry = 0x100000 去执行kernel。
 void
