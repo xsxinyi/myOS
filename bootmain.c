@@ -34,8 +34,7 @@
 #define ELFHDR          ((struct elfhdr *)0x10000)      // scratch space
 
 /* waitdisk - wait for disk ready */
-// 0x1f7	状态和命令寄存器。操作时先给命令，再读取，如果不是忙状态就从0x1f0端口读数据
-// 读数据，当0x1f7不为忙状态时，可以读。
+// 第7位为1表示硬盘忙，第6位为1表示硬盘控制器已准备好，正在等待指令。
 static void
 waitdisk(void) {
     while ((inb(0x1F7) & 0xC0) != 0x40)
@@ -43,37 +42,36 @@ waitdisk(void) {
 }
 
 /* readsect - read a single sector at @secno into @dst */
-/* 
-0x1f0	读数据，当0x1f7不为忙状态时，可以读。
-0x1f2	要读写的扇区数，每次读写前，你需要表明你要读写几个扇区。最小是1个扇区
-0x1f3	如果是LBA模式，就是LBA参数的0-7位
-0x1f4	如果是LBA模式，就是LBA参数的8-15位
-0x1f5	如果是LBA模式，就是LBA参数的16-23位
-0x1f6	第0~3位：如果是LBA模式就是24-27位 第4位：为0主盘；为1从盘
-0x1f7	状态和命令寄存器。操作时先给命令，再读取，如果不是忙状态就从0x1f0端口读数据
-*/
 static void
 readsect(void *dst, uint32_t secno) {
+    // 第1步：检查硬盘控制器状态, 读0x1f7端口
+    // 第7位为1表示硬盘忙，第6位为1表示硬盘控制器已准备好，正在等待指令。
     // wait for disk to be ready
     waitdisk();
-
+    
+    // 第2步：设置要读取的扇区数
     outb(0x1F2, 1);                         // count = 1
+
+    // 第3步：将LBA地址存入0x1f3~0x1f6
+
+    // 下面四条指令联合制定了扇区号
+    // 在这4个字节线联合构成的32位参数中
+    //   29-31位强制设为1, 表示LBA模式，
+    //   28位(=0)表示访问"Disk 0"
+    //   0-27位是28位的偏移量, See LBAHelper.txt
     outb(0x1F3, secno & 0xFF);
     outb(0x1F4, (secno >> 8) & 0xFF);
     outb(0x1F5, (secno >> 16) & 0xFF);
     outb(0x1F6, ((secno >> 24) & 0xF) | 0xE0);
-    // 上面四条指令联合制定了扇区号
-    // 在这4个字节线联合构成的32位参数中
-    //   29-31位强制设为1
-    //   28位(=0)表示访问"Disk 0"
-    //   0-27位是28位的偏移量
+    
+    // 第4步：向0x1f7端口写入读命令0x20
     outb(0x1F7, 0x20);                      // cmd 0x20 - read sectors
 
     // wait for disk to be ready
     waitdisk();
 
     // read a sector
-    // repne(repeat not equal两个字符不等的时候则rep) (AL)和es:[di]比较
+    // l代表双字，占4个字节，所以Bytes要除以4表示读的次数。
     insl(0x1F0, dst, SECTSIZE / 4);
 }
 
@@ -100,9 +98,20 @@ readseg(uintptr_t va, uint32_t count, uint32_t offset) {
 }
 
 /* bootmain - the entry of bootloader */
+// 首先，Boot把第一个即0号扇区即bootloader读入0x7c00
+// 然后，bootmain把1号扇区，即ELF的Header读入0x10000，从Header中知道，ELFHDR->e_entry = 0x100000, 即程序入口地址为 0x100000
+// 根据ELF的Header，ELF有三个Program section. 根据Program header table的偏置e_phoff，找到这三个Program Header.
+// 对于第一个Program Header，内存虚拟地址为0x100000，段在文件中的偏移为0x1000，因为文件起始为1号扇区，所以段从9号扇区开始。
+// 	    从中读取ph->p_memsz = 190个字节到 0x100000 内存中。
+// 对于第一个Program Header，内存虚拟地址为0x101000，段在文件中的偏移为0x2000，因为文件起始为1号扇区，所以段从17号扇区开始。
+// 	    从中读取ph->p_memsz = 12个字节到 0x101000 内存中。
+// 第三个段为空段。跳过。
+// 最后，跳到 ELFHDR->e_entry = 0x100000 去执行kernel。
 void
 bootmain(void) {
     // read the 1st page off disk
+    // SECTSIZE * 8 = 4KB = 0x1000
+    // ELFHDR = 0x10000
     readseg((uintptr_t)ELFHDR, SECTSIZE * 8, 0);
 
     // is this a valid ELF?
@@ -113,14 +122,39 @@ bootmain(void) {
     struct proghdr *ph, *eph;
 
     // load each program segment (ignores ph flags)
+    // ELFHDR->e_phoff的偏移是0x1c，LEA即去0x1c处取值，值是0x34
+    // ELFHDR->e_phnum的偏移是0x2c，LEA即去0x2c处取值，值是3
+    // ELFHDR->e_phoff = 0x34 = 52
+    // LEA : 加载有效地址（load effective address）指令就是lea,他的指令形式就是从内存读取数据到寄存器，但是实际上他没有引用内存，
+    // 而是将有效地址写入到目的的操作数，就像是C语言地址操作符&一样的功能，可以获取数据的地址。在实际使用中他有两种使用方式。
     ph = (struct proghdr *)((uintptr_t)ELFHDR + ELFHDR->e_phoff);
+
+    // sizeof(struct proghdr) = 4*8 = 32
+    // ph + ELFHDR->e_phnum = ph + ELFHDR->e_phnum * 32 
+    //     = ph + ELFHDR->e_phnum << 5 = 0x10034 + 3 << 5 = 0x10034 + 0x60 = 0x10094
     eph = ph + ELFHDR->e_phnum;
+    
     for (; ph < eph; ph ++) {
+        // 1st, ph = 0x10034
+        // [p_va] = [ph + 8] = 0x100000.
+        // [ph->p_offset] = [ph + 4] = 0x1000
+        // 0x20-0xc = 0x14, [ph->p_memsz] = [ph + 20 (0x14)] = 190
+
+        // 2nd, ph = 0x10054
+        // [p_va] = 0x101000
+        // [ph->p_offset] = 0x2000
+        // [ph->p_memsz] = 0xc = 12
+
+        // 3rd, ph = 0x10074
+        // [p_va] = 0
+        // [ph->p_offset] = 0
+        // [ph->p_memsz] = 0
         readseg(ph->p_va & 0xFFFFFF, ph->p_memsz, ph->p_offset);
     }
 
     // call the entry point from the ELF header
     // note: does not return
+    // ELFHDR->e_entry = [0x10018] = 0x100000
     ((void (*)(void))(ELFHDR->e_entry & 0xFFFFFF))();
 
 bad:

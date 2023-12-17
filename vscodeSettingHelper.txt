@@ -1,0 +1,9 @@
+点击“设置”图标，然后点击“键盘快捷方式”，输入“navigateBack”设置后退快捷键，这里我们根据通常习惯设置为alt+←：
+在这里插入图片描述
+输入“navigateForward”设置前进快捷键，这里我们根据通常习惯设置为alt+→：
+在这里插入图片描述
+
+2 总结
+（1）前进和后退快捷键包含的关键字分别为navigateForward、navigateBack。
+（2）vscode默认的前进快捷键为alt+→、后退快捷键为alt+←。
+

@@ -42,6 +42,9 @@ inb(uint16_t port) {
     return data;
 }
 
+// insl指令的意思
+// insl 从 DX 指定的 I/O 端口将双字输入 ES:(E)DI 指定的内存位置
+// repne是重复执行接下来的insl指令，重复次数由ecx寄存器决定。
 static inline void
 insl(uint32_t port, void *addr, int cnt) {
     asm volatile (
