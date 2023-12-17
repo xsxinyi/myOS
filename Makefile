@@ -41,9 +41,11 @@ bootasm.o: bootasm.S
 
 kernel: kernel.o
 	ld -m elf_i386 -nostdlib -T kernel.ld -o kernel kernel.o
+	objdump -S kernel > kernel.asm
+	objdump -t kernel > kernel.sym
 
 kernel.o: kernel.c
 	gcc -I./ -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c kernel.c -o kernel.o
 
 clean:
-	rm -rf *.o kernel sign bootblock bootblock.asm bootblock.out ucore.img
+	rm -rf *.o kernel sign bootblock bootblock.asm bootblock.out ucore.img kernel.sym kernel.asm
