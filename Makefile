@@ -4,7 +4,9 @@ all: ucore.img
 
 .PHONY: gdb
 gdb: ucore.img
-	qemu-system-i386 -S -s -hda $< 
+	qemu-system-i386 -S -s -parallel stdio -hda $< -serial null &
+	sleep 2
+	gnome-terminal -e "gdb -q -tui -x gdbinit"
 
 .PHONY: debug
 debug: ucore.img
