@@ -3,6 +3,9 @@
         "defs.h": "c",
         "error.h": "c",
         "x86.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "stab.h": "c",
+        "stdio.h": "c",
+        "kdebug.h": "c"
     }
 }

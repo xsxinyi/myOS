@@ -39,13 +39,13 @@ bootmain.o: bootmain.c
 bootasm.o: bootasm.S
 	gcc -I./ -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -Os -nostdinc -c bootasm.S -o bootasm.o
 
-kernel: kernel.o console.o stdio.o picirq.o string.o printfmt.o
-	ld -m elf_i386 -nostdlib -T kernel.ld -o kernel kernel.o console.o stdio.o picirq.o string.o printfmt.o
+kernel: kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o
+	ld -m elf_i386 -nostdlib -T kernel.ld -o kernel kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o
 	objdump -S kernel > kernel.asm
 	objdump -t kernel > kernel.sym
 
 kernel.o: kernel.c
-	gcc -I./ -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c kernel.c -o kernel.o
+	gcc -I./ -I./tools -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c kernel.c -o kernel.o
 
 console.o: console.c
 	gcc -I./ -I./tools -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c console.c -o console.o
@@ -62,6 +62,9 @@ string.o: string.c
 
 printfmt.o: printfmt.c
 	gcc -I./ -I./tools -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c printfmt.c -o printfmt.o
+
+kdebug.o: kdebug.c
+	gcc -I./ -I./tools -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c kdebug.c -o kdebug.o
 
 clean:
 	rm -rf *.o kernel sign bootblock bootblock.asm bootblock.out ucore.img kernel.sym kernel.asm
