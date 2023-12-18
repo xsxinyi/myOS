@@ -12,7 +12,7 @@ gdb: ucore.img
 debug: ucore.img
 	# qemu-system-i386 -S -s -parallel stdio -hda $< -serial null
 	# qemu-system-i386 -S -s -m 32M -boot c -hda $< 
-	qemu-system-i386 -S -s -hda $< 
+	qemu-system-i386 -S -s -m 32M -hda $< 
 
 ucore.img:	bootblock kernel
 	dd if=/dev/zero of=ucore.img count=10000
@@ -39,13 +39,29 @@ bootmain.o: bootmain.c
 bootasm.o: bootasm.S
 	gcc -I./ -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -Os -nostdinc -c bootasm.S -o bootasm.o
 
-kernel: kernel.o
-	ld -m elf_i386 -nostdlib -T kernel.ld -o kernel kernel.o
+kernel: kernel.o console.o stdio.o picirq.o string.o printfmt.o
+	ld -m elf_i386 -nostdlib -T kernel.ld -o kernel kernel.o console.o stdio.o picirq.o string.o printfmt.o
 	objdump -S kernel > kernel.asm
 	objdump -t kernel > kernel.sym
 
 kernel.o: kernel.c
 	gcc -I./ -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c kernel.c -o kernel.o
+
+console.o: console.c
+	gcc -I./ -I./tools -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c console.c -o console.o
+
+stdio.o: stdio.c
+	gcc -I./ -I./tools -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c stdio.c -o stdio.o
+
+
+picirq.o: picirq.c
+	gcc -I./ -I./tools -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c picirq.c -o picirq.o
+
+string.o: string.c
+	gcc -I./ -I./tools -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c string.c -o string.o
+
+printfmt.o: printfmt.c
+	gcc -I./ -I./tools -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c printfmt.c -o printfmt.o
 
 clean:
 	rm -rf *.o kernel sign bootblock bootblock.asm bootblock.out ucore.img kernel.sym kernel.asm

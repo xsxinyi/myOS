@@ -1,3 +1,5 @@
+From: https://wiki.preterhuman.net/XT,_AT_and_PS/2_I/O_port_addresses
+
 [This file was provided by Wim Osterholt (2:512/56 or wim@djo.wtm.tudelft.nl).]
 Last Change: 11/6/94
 

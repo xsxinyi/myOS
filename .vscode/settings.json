@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "defs.h": "c"
+        "defs.h": "c",
+        "error.h": "c",
+        "x86.h": "c",
+        "string.h": "c"
     }
 }

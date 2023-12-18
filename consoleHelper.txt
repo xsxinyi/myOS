@@ -1,0 +1,43 @@
+// UART info From : https://blog.csdn.net/jiangwei0512/article/details/81840145
+// RS232      +-----------+   +-----------+   +-----------+   +-----------+
+// Interface  | Line      |   |           |   | Interface |   |           |
+// -----------+ Driver /  +---+   UART    +---+ Logic     +---+    CPU    |
+//            | Receiver  |   |           |   |           |   |           |
+//            +-----------+   +-----+-----+   +-----+-----+   +-----------+
+//                                  |               |
+//                                  |               |
+//                            +-----+-----+         |
+//                            | Baud Rate |         |
+//                            | Generator +---------+
+//                            |           |
+//                            +-----------+
+// UART寄存器
+// UART芯片有如下的寄存器：
+
+// Offset	DLAB	    Access	    Abbr	Name
+// 0	    0	        Write	    THR	    Transmit Holding Register
+// 0	    0	        Read	    RBR	    Receive Buffer Register
+// 0	    1	        Read/Write	DLL	    Divisor Latch LSB
+// 1	    0	        Read/Write	DLM	    Divisor Latch MSB
+// 1	    1	        Read/Write	IER	    Interrupt Enable Register
+// 2	    x	        Read	    IIR	    Interrupt Identification Register
+// 2	    x	        Write	    FCR	    FIFO Cotrol Register
+// 3	    x	        Read/Write	LCR	    Line Control Register
+// 4	    x	        Read/Write	MCR	    Modem Control Register
+// 5	    x	        Read	    LSR	    Line Status Register
+// 6	    x	        Read	    MSR	    Modem Status Register
+// 7	    x	        Read/Write	SCR	    Scratch Pad Register
+
+// 第一列是寄存器的偏移，访问它们的方式可以是IO也可以是MMIO（最早的都是IO的，现在也有MMIO的）。
+
+// 从上表可以看到UART芯片总共有12个寄存器，但是只有8个端口可以使用，因此中间存在的复用。复用的方式有不同的情况，有些是读写使用同一个，另外是根据“Divisor Latch Access Bit”（该BIT后续会介绍）的值有不同的作用（0,1表示有效，x就表示不受影响）。
+
+// 第二、三列的作用前面已经说明了。
+
+// 第四行是缩写，在代码里面会用到宏名称中。
+
+// 第五列是串口寄存器的名称。
+
+// FCR：FIFO是在后续的8250芯片中引入的，它是一个写有效寄存器，用来控制FIFO特性. 0 means enable FIFO.
+// LCR：这个寄存器有两个作用，一个是设置DLAB（前面已经提到过这个BIT），另一个是设置模式（如8-1-None，5-2-Even等）. BIT7 means DLAB
+// DLL/DLM：这两个寄存器是用来设定波特率的，放到里面的数据是115200/BaudRate，下面是目前所有可能的值
