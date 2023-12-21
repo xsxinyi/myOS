@@ -6,7 +6,8 @@ all: ucore.img
 gdb: ucore.img
 	qemu-system-i386 -S -s -parallel stdio -hda $< -serial null &
 	sleep 2
-	gnome-terminal -e "gdb -q -tui -x gdbinit"
+	# gnome-terminal -e "gdb -q -tui -x gdbinit"
+	gdb -x gdbinit
 
 .PHONY: debug
 debug: ucore.img
@@ -39,8 +40,8 @@ bootmain.o: bootmain.c
 bootasm.o: bootasm.S
 	gcc -I./ -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -Os -nostdinc -c bootasm.S -o bootasm.o
 
-kernel: kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o
-	ld -m elf_i386 -nostdlib -T kernel.ld -o kernel kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o
+kernel: kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o kmonitor.o trap.o readline.o vectors.o clock.o panic.o intr.o trapentry.o
+	ld -m elf_i386 -nostdlib -T kernel.ld -o kernel kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o kmonitor.o trap.o readline.o vectors.o clock.o panic.o intr.o trapentry.o
 	objdump -S kernel > kernel.asm
 	objdump -t kernel > kernel.sym
 
@@ -65,6 +66,30 @@ printfmt.o: printfmt.c
 
 kdebug.o: kdebug.c
 	gcc -I./ -I./tools -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c kdebug.c -o kdebug.o
+
+kmonitor.o: kmonitor.c
+	gcc -I./ -I./tools -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c kmonitor.c -o kmonitor.o
+
+trap.o: trap.c
+	gcc -I./ -I./tools -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c trap.c -o trap.o
+
+readline.o: readline.c
+	gcc -I./ -I./tools -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c readline.c -o readline.o
+
+vectors.o: vectors.S
+	gcc -I./ -I./tools -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -c vectors.S -o vectors.o
+
+clock.o: clock.c
+	gcc -I./ -I./tools -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -c clock.c -o clock.o
+
+panic.o: panic.c
+	gcc -I./ -I./tools -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -c panic.c -o panic.o
+
+intr.o: intr.c
+	gcc -I./ -I./tools -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -c intr.c -o intr.o
+
+trapentry.o: trapentry.S
+	gcc -I./ -I./tools -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -c trapentry.S -o trapentry.o
 
 clean:
 	rm -rf *.o kernel sign bootblock bootblock.asm bootblock.out ucore.img kernel.sym kernel.asm

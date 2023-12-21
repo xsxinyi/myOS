@@ -6,6 +6,8 @@
         "string.h": "c",
         "stab.h": "c",
         "stdio.h": "c",
-        "kdebug.h": "c"
+        "kdebug.h": "c",
+        "kmonitor.h": "c",
+        "console.h": "c"
     }
 }
