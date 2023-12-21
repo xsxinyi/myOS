@@ -8,6 +8,7 @@
         "stdio.h": "c",
         "kdebug.h": "c",
         "kmonitor.h": "c",
-        "console.h": "c"
+        "console.h": "c",
+        "pmm.h": "c"
     }
 }

@@ -40,8 +40,8 @@ bootmain.o: bootmain.c
 bootasm.o: bootasm.S
 	gcc -I./ -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -Os -nostdinc -c bootasm.S -o bootasm.o
 
-kernel: kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o kmonitor.o trap.o readline.o vectors.o clock.o panic.o intr.o trapentry.o
-	ld -m elf_i386 -nostdlib -T kernel.ld -o kernel kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o kmonitor.o trap.o readline.o vectors.o clock.o panic.o intr.o trapentry.o
+kernel: kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o kmonitor.o trap.o readline.o vectors.o clock.o panic.o intr.o trapentry.o pmm.o
+	ld -m elf_i386 -nostdlib -T kernel.ld -o kernel kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o kmonitor.o trap.o readline.o vectors.o clock.o panic.o intr.o trapentry.o pmm.o
 	objdump -S kernel > kernel.asm
 	objdump -t kernel > kernel.sym
 
@@ -90,6 +90,9 @@ intr.o: intr.c
 
 trapentry.o: trapentry.S
 	gcc -I./ -I./tools -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -c trapentry.S -o trapentry.o
+
+pmm.o: pmm.c
+	gcc -I./ -I./tools -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -c pmm.c -o pmm.o
 
 clean:
 	rm -rf *.o kernel sign bootblock bootblock.asm bootblock.out ucore.img kernel.sym kernel.asm

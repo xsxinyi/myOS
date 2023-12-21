@@ -3,6 +3,7 @@
 #include "kdebug.h"
 #include "kmonitor.h"
 #include "trap.h"
+#include "pmm.h"
 
 void kern_init(void);
 
@@ -36,6 +37,13 @@ void kern_init(void) {
     print_kerninfo();
 
     grade_backtrace();
+
+    pmm_init();                 // init physical memory management
+
+    pic_init();                 // init interrupt controller
+    idt_init();                 // init interrupt descriptor table
+
+    clock_init();               // init clock interrupt
 
     return;
 }
