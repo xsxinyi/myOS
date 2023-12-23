@@ -44,6 +44,7 @@ kernel: kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o kmonito
 	ld -m elf_i386 -nostdlib -T kernel.ld -o kernel kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o kmonitor.o trap.o readline.o vectors.o clock.o panic.o intr.o trapentry.o pmm.o
 	objdump -S kernel > kernel.asm
 	objdump -t kernel > kernel.sym
+	objdump -G kernel > kernel.stab
 
 kernel.o: kernel.c
 	gcc -I./ -I./tools -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c kernel.c -o kernel.o
@@ -95,4 +96,4 @@ pmm.o: pmm.c
 	gcc -I./ -I./tools -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -c pmm.c -o pmm.o
 
 clean:
-	rm -rf *.o kernel sign bootblock bootblock.asm bootblock.out ucore.img kernel.sym kernel.asm
+	rm -rf *.o kernel sign bootblock bootblock.asm bootblock.out ucore.img kernel.sym kernel.asm kernel.stab

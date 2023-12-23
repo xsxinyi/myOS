@@ -121,6 +121,8 @@ struct segdesc {
         (unsigned) (base) >> 24                            \
     }
 
+
+// Same as SEG_ASM in asm.h
 #define SEG16(type, base, lim, dpl)                        \
     (struct segdesc){                                    \
         (lim) & 0xffff, (base) & 0xffff,                \
