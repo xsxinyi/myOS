@@ -27,6 +27,58 @@ grade_backtrace(void) {
     grade_backtrace0(0, (int)kern_init, 0xffff0000);
 }
 
+static void
+lab1_print_cur_status(void) {
+    static int round = 0;
+    uint16_t reg1, reg2, reg3, reg4;
+    asm volatile (
+            "mov %%cs, %0;"
+            "mov %%ds, %1;"
+            "mov %%es, %2;"
+            "mov %%ss, %3;"
+            : "=m"(reg1), "=m"(reg2), "=m"(reg3), "=m"(reg4));
+    cprintf("%d: @ring %d\n", round, reg1 & 3);
+    cprintf("%d:  cs = %x\n", round, reg1);
+    cprintf("%d:  ds = %x\n", round, reg2);
+    cprintf("%d:  es = %x\n", round, reg3);
+    cprintf("%d:  ss = %x\n", round, reg4);
+    round ++;
+}
+
+static void
+lab1_switch_to_user(void) {
+    //LAB1 CHALLENGE 1 : TODO
+	asm volatile (
+	    "sub $0x8, %%esp \n"
+	    "int %0 \n"
+	    "movl %%ebp, %%esp"
+	    : 
+	    : "i"(T_SWITCH_TOU)
+	);
+}
+
+static void
+lab1_switch_to_kernel(void) {
+    //LAB1 CHALLENGE 1 :  TODO
+	asm volatile (
+	    "int %0 \n"
+	    "movl %%ebp, %%esp \n"
+	    : 
+	    : "i"(T_SWITCH_TOK)
+	);
+}
+
+static void
+lab1_switch_test(void) {
+    lab1_print_cur_status();
+    cprintf("+++ switch to  user  mode +++\n");
+    lab1_switch_to_user();
+    lab1_print_cur_status();
+    cprintf("+++ switch to kernel mode +++\n");
+    lab1_switch_to_kernel();
+    lab1_print_cur_status();
+}
+
 void kern_init(void) {
     
     cons_init();                // init the console
@@ -44,6 +96,15 @@ void kern_init(void) {
     idt_init();                 // init interrupt descriptor table
 
     clock_init();               // init clock interrupt
+
+    intr_enable();              // enable irq interrupt
+
+    //LAB1: CAHLLENGE 1 If you try to do it, uncomment lab1_switch_test()
+    // user/kernel mode switch test
+    lab1_switch_test();
+
+    /* do nothing */
+    while (1);
 
     return;
 }

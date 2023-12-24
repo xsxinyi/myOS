@@ -27,6 +27,15 @@ pic_enable(unsigned int irq) {
     pic_setmask(irq_mask & ~(1 << irq));
 }
 
+// 8259A是可编程中断控制器，通过向端口写入特定的初始化控制字 ICW (Initialization Command Word)进行设置，ICW共有4个，每个都是具有特定格式的字节。主8259A对应端口是 20h ~ 21h ，从8259A对应的端口地址 A0h ~ A1h 。初始化过程如下(顺序不可变化)：
+
+// 往端口20h（主片）或A0h（从片）写入ICW1。
+// 往端口21h（主片）或A1h（从片）写入ICW2，这里涉及到与中断向量的对应。
+// 往端口21h（主片）或A1h（从片）写入ICW3。
+// 往端口21h（主片）或A1h（从片）写入ICW4。
+// ————————————————
+// 版权声明：本文为CSDN博主「memcpy0」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+// 原文链接：https://blog.csdn.net/myRealization/article/details/107560955
 /* pic_init - initialize the 8259A interrupt controllers */
 void
 pic_init(void) {
@@ -73,8 +82,8 @@ pic_init(void) {
     //   ef:  0x = NOP, 10 = clear specific mask, 11 = set specific mask
     //    p:  0 = no polling, 1 = polling mode
     //   rs:  0x = NOP, 10 = read IRR, 11 = read ISR
-    outb(IO_PIC1, 0x68);    // clear specific mask
-    outb(IO_PIC1, 0x0a);    // read IRR by default
+    outb(IO_PIC1, 0x68);    // clear specific mask, 01101000b
+    outb(IO_PIC1, 0x0a);    // read IRR by default, 00001010b
 
     outb(IO_PIC2, 0x68);    // OCW3
     outb(IO_PIC2, 0x0a);    // OCW3
