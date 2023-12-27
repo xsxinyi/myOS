@@ -4,6 +4,7 @@ i r
 p $ax
 p /x $ax
 x/10xb 0x7c00
+x/16xb 0x7ba4
 x/2xb 0x7dfe
 disas 0x7c00, +10
 set disassembly-flavor intel
