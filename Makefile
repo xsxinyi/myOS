@@ -30,7 +30,9 @@ sign.o : sign.c
 	gcc -g -Wall -O2 -c sign.c -o sign.o
 
 bootblock.out: bootasm.o bootmain.o
-	ld -m elf_i386 -nostdlib -N -e start -Ttext 0x7C00 bootasm.o bootmain.o -o bootblock.o
+	# ld cmd for lab1. lab needs to reduce some memory to meet the 512B limitation.
+	# ld -m elf_i386 -nostdlib -N -e start -Ttext 0x7C00 bootasm.o bootmain.o -o bootblock.o
+	ld -m elf_i386 -nostdlib -N -T boot.ld bootasm.o bootmain.o -o bootblock.o
 	objdump -S bootblock.o > bootblock.asm
 	objcopy -S -O binary bootblock.o bootblock.out	
 

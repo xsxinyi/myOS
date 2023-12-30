@@ -8,6 +8,7 @@
 .set PROT_MODE_CSEG,        0x8                     # kernel code segment selector
 .set PROT_MODE_DSEG,        0x10                    # kernel data segment selector
 .set CR0_PE_ON,             0x1                     # protected mode enable flag
+.set SMAP,                  0x534d4150              # ASCII : "SMAP"
 
 # start address should be 0:7c00, in real mode, the beginning address of the running bootloader
 .globl start
@@ -48,6 +49,29 @@ seta20.2:
 
     movb $0xdf, %al                                 # 0xdf -> port 0x60
     outb %al, $0x60                                 # 0xdf = 11011111, means set P2's A20 bit(the 1 bit) to 1
+
+probe_memory:
+    movl $0, 0x8000
+    xorl %ebx, %ebx
+    movw $0x8004, %di
+start_probe:
+    movl $0xE820, %eax
+    movl $20, %ecx
+    movl $SMAP, %edx
+    int $0x15
+    # JC   ;进位则跳转
+    # JNC  ;不进位则跳转
+    jnc cont
+    movw $12345, 0x8000
+    jmp finish_probe
+cont:
+    addw $20, %di
+    # AT&T语法和Intel语法的区别,incl/decl xxx等价于“inc/dec 32位的寄存器或内存单元”.
+    # e.g. [0x8000] = 0 at the start. After incl cmd, [0x8000] = 1.
+    incl 0x8000
+    cmpl $0, %ebx
+    jnz start_probe
+finish_probe:
 
     # GDT Global Descriptor Table
     # Switch from real to protected mode, using a bootstrap GDT
