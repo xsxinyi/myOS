@@ -10,6 +10,7 @@
             "request": "launch",
             "miDebuggerServerAddress": "localhost:1234",
             "program": "${workspaceFolder}/kernel",
+            // "program": "${workspaceFolder}/kernel_nopage",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

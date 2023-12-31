@@ -21,6 +21,7 @@ debug: ucore.img
 	# qemu-system-i386 -S -s -m 32M -boot c -hda $< 
 	qemu-system-i386 -S -s -m 4G -hda $< 
 
+# ucore.img:	bootblock kernel kernel_nopage
 ucore.img:	bootblock kernel
 	dd if=/dev/zero of=ucore.img count=10000
 	dd if=bootblock of=ucore.img conv=notrunc
@@ -48,11 +49,17 @@ bootmain.o: bootmain.c
 bootasm.o: bootasm.S
 	gcc -I./ -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -Os -nostdinc -c bootasm.S -o bootasm.o
 
-kernel: kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o kmonitor.o trap.o readline.o vectors.o clock.o panic.o intr.o trapentry.o pmm.o
-	ld -m elf_i386 -nostdlib -T kernel.ld -o kernel kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o kmonitor.o trap.o readline.o vectors.o clock.o panic.o intr.o trapentry.o pmm.o
+kernel: entry.o kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o kmonitor.o trap.o readline.o vectors.o clock.o panic.o intr.o trapentry.o pmm.o
+	ld -m elf_i386 -nostdlib -T kernel.ld -o kernel entry.o kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o kmonitor.o trap.o readline.o vectors.o clock.o panic.o intr.o trapentry.o pmm.o
 	objdump -S kernel > kernel.asm
 	objdump -t kernel > kernel.sym
 	objdump -G kernel > kernel.stab
+
+# kernel_nopage: entry.o kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o kmonitor.o trap.o readline.o vectors.o clock.o panic.o intr.o trapentry.o pmm.o
+# 	ld -m elf_i386 -nostdlib -T kernel_nopage.ld -o kernel_nopage entry.o kernel.o console.o stdio.o picirq.o string.o printfmt.o kdebug.o kmonitor.o trap.o readline.o vectors.o clock.o panic.o intr.o trapentry.o pmm.o
+# 	objdump -S kernel_nopage > kernel_nopage.asm
+# 	objdump -t kernel_nopage > kernel_nopage.sym
+# 	objdump -G kernel_nopage > kernel_nopage.stab
 
 kernel.o: kernel.c
 	gcc -I./ -I./tools -fno-builtin -Wall -g -m32 -gstabs -nostdinc  -fno-stack-protector -c kernel.c -o kernel.o
@@ -102,6 +109,9 @@ trapentry.o: trapentry.S
 
 pmm.o: pmm.c
 	gcc -I./ -I./tools -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -c pmm.c -o pmm.o
+
+entry.o: entry.S
+	gcc -I./ -I./tools -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -c entry.S -o entry.o
 
 clean:
 	rm -rf *.o kernel sign bootblock bootblock.asm bootblock.out ucore.img kernel.sym kernel.asm kernel.stab q.log
