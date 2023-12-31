@@ -1,10 +1,16 @@
 .PHONY: all
 all: ucore.img
-	qemu-system-i386 -hda $< 
+	qemu-system-i386 -m 4G -hda $< 
+
+.PHONY: log
+log: ucore.img
+	gnome-terminal -e "qemu-system-i386  -S -s -d in_asm -D ./q.log -monitor stdio -hda $< -serial null"
+	sleep 2
+	gnome-terminal  -e "gdb -q -x loginit"
 
 .PHONY: gdb
 gdb: ucore.img
-	qemu-system-i386 -S -s -parallel stdio -hda $< -serial null &
+	qemu-system-i386 -S -s -m 4G -parallel stdio -hda $< -serial null &
 	sleep 2
 	# gnome-terminal -e "gdb -q -tui -x gdbinit"
 	gdb -x gdbinit
@@ -13,7 +19,7 @@ gdb: ucore.img
 debug: ucore.img
 	# qemu-system-i386 -S -s -parallel stdio -hda $< -serial null
 	# qemu-system-i386 -S -s -m 32M -boot c -hda $< 
-	qemu-system-i386 -S -s -m 32M -hda $< 
+	qemu-system-i386 -S -s -m 4G -hda $< 
 
 ucore.img:	bootblock kernel
 	dd if=/dev/zero of=ucore.img count=10000
@@ -98,4 +104,4 @@ pmm.o: pmm.c
 	gcc -I./ -I./tools -fno-builtin -Wall -ggdb -m32 -gstabs -nostdinc  -fno-stack-protector -c pmm.c -o pmm.o
 
 clean:
-	rm -rf *.o kernel sign bootblock bootblock.asm bootblock.out ucore.img kernel.sym kernel.asm kernel.stab
+	rm -rf *.o kernel sign bootblock bootblock.asm bootblock.out ucore.img kernel.sym kernel.asm kernel.stab q.log
